@@ -2,16 +2,31 @@ package logger
 
 import (
 	"net/http"
+	"os"
 	"time"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 var Log *zap.Logger
 
 func Initialize(level string) error {
+	config := zap.NewProductionConfig()
+	config.OutputPaths = []string{
+		"./logs/app.log",
+		"stdout",
+	}
+
+	config.EncoderConfig.TimeKey = "timestamp"
+	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+
+	if err := os.MkdirAll("./logs", 0755); err != nil {
+		return err
+	}
+
 	var err error
-	Log, err = zap.NewDevelopment()
+	Log, err = config.Build()
 	if err != nil {
 		return err
 	}
